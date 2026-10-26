@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}{{ exam.title }} - ExamEase{% endblock %}
+{% block content %}
+  <div class="card">
+    <div class="exam-top">
+      <h2>{{ exam.title }}</h2>
+      <div class="timer" id="timer">--:--</div>
+    </div>
+
+    <div class="progress"><div class="progress-bar" id="progress-bar"></div></div>
+    <p class="progress-text"><span id="progress-text"></span> <span id="save-status" class="save-status"></span></p>
+    <div class="flash error" id="submit-error" style="display:none;">
+      <span id="submit-error-text"></span>
+      <button class="btn" type="button" onclick="submitExam(false)" style="margin-left:8px;">Retry submit</button>
+    </div>
+
+    <!-- Questions (no correct answers) and already-saved answers, escaped by tojson -->
+    <script type="application/json" id="questions-data">{{ questions|tojson }}</script>
+    <script type="application/json" id="saved-data">{{ saved|tojson }}</script>
+    <div id="exam-config" data-exam-id="{{ exam.id }}" data-remaining="{{ remaining }}" data-csrf="{{ csrf_token() }}"></div>
+
+    <div class="question-nav" id="question-nav"></div>
+
+    <h3 id="question-number">Question 1</h3>
+    <p class="muted" id="question-marks"></p>
+    <p id="question-text" style="font-size:16px; margin-bottom:15px; white-space:pre-wrap;"></p>
+
+    <div class="options" id="options"></div>
+
+    <p class="exam-buttons">
+      <button class="btn btn-secondary" id="prev-btn" onclick="previousQuestion()">Previous</button>
+      <button class="btn" id="next-btn" onclick="nextQuestion()">Next</button>
+      <button class="btn btn-secondary" id="review-btn" onclick="toggleReview()">Mark for Review</button>
+      <button class="btn btn-secondary" id="clear-btn" onclick="clearAnswer()">Clear Answer</button>
+      <button class="btn btn-danger" id="submit-btn" onclick="showSubmitDialog()">Review &amp; Submit</button>
+    </p>
+  </div>
+
+  <!-- Review screen + submit confirmation -->
+  <div class="overlay" id="overlay" style="display:none;"></div>
+  <div class="confirm-box" id="confirm-box" style="display:none;">
+    <h3>Review your answers</h3>
+    <p>Answered: <b id="confirm-answered">0</b> &middot; Unanswered: <b id="confirm-unanswered">0</b> &middot; Marked for review: <b id="confirm-review">0</b></p>
+    <div class="question-nav" id="review-grid" style="justify-content:center;"></div>
+    <p class="muted">Green = answered, white = unanswered, orange = marked for review. Click a number to go back to it.</p>
+    <p>Are you sure you want to submit? You cannot change your answers after submitting.</p>
+    <p>
+      <button class="btn" onclick="submitExam(false)">Yes, Submit</button>
+      <button class="btn btn-secondary" onclick="hideSubmitDialog()">Back to exam</button>
+    </p>
+  </div>
+  <script src="{{ url_for('static', filename='exam.js') }}"></script>
+{% endblock %}

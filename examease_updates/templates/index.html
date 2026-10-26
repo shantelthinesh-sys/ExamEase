@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}ExamEase - Home{% endblock %}
+{% block content %}
+  <div class="card">
+    <h2>Welcome to ExamEase</h2>
+    <p>ExamEase is a simple online examination system built for a college DSA microproject.</p>
+    <p>Students register, take timed MCQ exams and view their results. Teachers build a question bank, create and publish exams and review results. An administrator manages users and the platform.</p>
+
+    {% if not user %}
+      <p>
+        <a class="btn" href="{{ url_for('login') }}">Login</a>
+        <a class="btn btn-secondary" href="{{ url_for('register') }}">Register as Student</a>
+      </p>
+    {% else %}
+      <p>
+        {% if user.role == 'student' %}<a class="btn" href="{{ url_for('dashboard') }}">Go to my dashboard</a>
+        {% elif user.role == 'teacher' %}<a class="btn" href="{{ url_for('teacher_dashboard') }}">Go to teacher dashboard</a>
+        {% else %}<a class="btn" href="{{ url_for('admin_dashboard') }}">Go to admin dashboard</a>{% endif %}
+      </p>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h3>DSA Concepts Used</h3>
+    <ul>
+      <li><b>Stack</b> - tracks question navigation history (one stack per student).</li>
+      <li><b>Hash Table</b> - finds user records by registration number at login.</li>
+      <li><b>Binary Search</b> - searches results sorted by registration number.</li>
+    </ul>
+  </div>
+{% endblock %}

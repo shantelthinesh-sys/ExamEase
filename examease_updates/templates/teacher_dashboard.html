@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Teacher Dashboard - ExamEase{% endblock %}
+{% block content %}
+  <div class="card">
+    <h2>Teacher Dashboard</h2>
+    <p>Build your question bank, create exams, publish them and review results.</p>
+    <div class="stat-grid">
+      <div class="stat"><b>{{ exams|length }}</b>Exams</div>
+      <div class="stat"><b>{{ exams|selectattr('status','equalto','published')|list|length }}</b>Published</div>
+      <div class="stat"><b>{{ my_questions }}</b>My questions</div>
+      <div class="stat"><b>{{ attempts }}</b>Attempts</div>
+    </div>
+    <p>
+      <a class="btn" href="{{ url_for('exam_new') }}">Create Exam</a>
+      <a class="btn btn-secondary" href="{{ url_for('question_list') }}">Question Bank</a>
+      <a class="btn btn-secondary" href="{{ url_for('search') }}">Search Result by Reg. No.</a>
+    </p>
+  </div>
+  <div class="card">
+    <h3>My Exams</h3>
+    {% if exams %}{% set show_owner = false %}{% include "_exam_table.html" %}
+    {% else %}<p class="empty">No exams yet. Click "Create Exam" to build your first one.</p>{% endif %}
+  </div>
+{% endblock %}

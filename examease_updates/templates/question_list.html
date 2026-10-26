@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Question Bank - ExamEase{% endblock %}
+{% block content %}
+  <div class="card">
+    <h2>Question Bank</h2>
+    <p>{% if user.role == 'teacher' %}Your questions and shared questions. You can edit or delete only your own.{% else %}All questions on the platform.{% endif %}</p>
+    <p><a class="btn" href="{{ url_for('question_add') }}">Add Question</a>
+       <a class="btn btn-secondary" href="{{ url_for('teacher_dashboard' if user.role == 'teacher' else 'admin_dashboard') }}">Back</a></p>
+    <form method="GET" action="{{ url_for('question_list') }}" class="filter-form">
+      <input type="text" name="search" placeholder="Search text or topic" value="{{ flt.search }}">
+      <select name="subject"><option value="">All subjects</option>{% for s in subjects %}<option {{ 'selected' if s == flt.subject }}>{{ s }}</option>{% endfor %}</select>
+      <select name="topic"><option value="">All topics</option>{% for t in topics %}<option {{ 'selected' if t == flt.topic }}>{{ t }}</option>{% endfor %}</select>
+      <select name="difficulty"><option value="">Any difficulty</option>{% for d in difficulties %}<option {{ 'selected' if d == flt.difficulty }}>{{ d }}</option>{% endfor %}</select>
+      <button class="btn" type="submit">Filter</button>
+      <a class="btn btn-secondary" href="{{ url_for('question_list') }}">Reset</a>
+    </form>
+  </div>
+  <div class="card">
+    <h3>Questions ({{ questions|length }})</h3>
+    {% if questions %}
+    <div class="table-wrap"><table>
+      <tr><th>#</th><th>Question</th><th>Subject / Topic</th><th>Difficulty</th><th>Marks</th><th>Correct</th><th>Owner</th><th>Actions</th></tr>
+      {% for q in questions %}
+      <tr>
+        <td>{{ loop.index }}</td>
+        <td>{{ q.question|truncate(90) }}</td>
+        <td>{{ q.subject or '-' }}<br><small class="muted">{{ q.topic }}</small></td>
+        <td><span class="badge badge-{{ q.difficulty }}">{{ q.difficulty }}</span></td>
+        <td>{{ q.marks }}</td>
+        <td>{{ q.correct_option|upper }}</td>
+        <td>{{ 'You' if q.owner_id == user.id else ('Shared' if q.owner_id is none else 'Teacher') }}</td>
+        <td>
+          {% if user.role == 'admin' or q.owner_id == user.id %}
+            <a href="{{ url_for('question_edit', question_id=q.id) }}">Edit</a>
+            <form method="POST" action="{{ url_for('question_delete', question_id=q.id) }}" style="display:inline;" onsubmit="return confirm('Delete this question? Exams already using it keep their copy.');">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-danger" style="padding:3px 8px; font-size:13px;">Delete</button>
+            </form>
+          {% else %}<span class="muted">read-only</span>{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </table></div>
+    {% else %}
+      <p class="empty">No questions match. Click "Add Question" to create one.</p>
+    {% endif %}
+  </div>
+{% endblock %}

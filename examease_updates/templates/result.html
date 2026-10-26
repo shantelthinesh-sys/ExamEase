@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Result - ExamEase{% endblock %}
+{% block content %}
+  <div class="card">
+    <h2>{{ exam.title }} - Result</h2>
+    <p><b>Student:</b> {{ student.name }} ({{ student.reg_no }})</p>
+    <p><b>Submitted:</b> {{ attempt.submitted_at }}
+       ({{ 'auto-submitted when time ran out' if attempt.status == 'auto_submitted' else 'submitted by student' }})</p>
+    <p><b>Time taken:</b> {{ attempt.time_taken_seconds|duration }} of {{ exam.duration_minutes }} min</p>
+
+    {% if pending %}
+      <p class="flash success">Your exam was submitted successfully. Your score will appear here once your teacher releases the results.</p>
+    {% else %}
+      <div class="result-big">{{ attempt.percentage }}%</div>
+      <p class="result-stat">Marks: <b>{{ attempt.marks }}</b> / {{ attempt.total_marks }}</p>
+      <p class="result-stat">Correct: {{ attempt.correct_count }} &middot; Incorrect: {{ attempt.wrong_count }} &middot; Unanswered: {{ attempt.unanswered_count }}</p>
+      {% if attempt.percentage >= PASS_PERCENT %}
+        <p style="color:#2e7d32; font-weight:bold;">Result: PASS</p>
+      {% else %}
+        <p style="color:#c62828; font-weight:bold;">Result: FAIL (passing mark is {{ PASS_PERCENT }}%)</p>
+      {% endif %}
+    {% endif %}
+
+    <p style="margin-top:15px;">
+      {% if user.role == 'student' %}<a class="btn btn-secondary" href="{{ url_for('dashboard') }}">Back to Dashboard</a>
+      {% else %}<a class="btn btn-secondary" href="{{ url_for('exam_results', exam_id=exam.id) }}">Back to exam results</a>{% endif %}
+    </p>
+  </div>
+
+  {% if not pending %}
+  <div class="card">
+    <h3>Topic-wise performance</h3>
+    {% if topics|length > 1 or (topics and topics[0].topic != 'General') %}
+      <div class="table-wrap"><table>
+        <tr><th>Topic</th><th>Correct</th><th>Accuracy</th></tr>
+        {% for t in topics %}<tr><td>{{ t.topic }}</td><td>{{ t.correct }} / {{ t.total }}</td>
+          <td><div class="bar"><div class="bar-fill" style="width: {{ t.pct }}%"></div></div> {{ t.pct }}%</td></tr>{% endfor %}
+      </table></div>
+    {% else %}
+      <p class="empty">Topic-wise results appear when the questions are tagged with topics.</p>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h3>Answer Review</h3>
+    {% for r in review %}
+      <div class="review-item review-{{ r.status }}">
+        <p><b>Q{{ r.number }}.</b> <span style="white-space:pre-wrap;">{{ r.q.question }}</span>
+           <span class="badge badge-{{ r.status }}">{{ r.status }}</span>
+           {% if r.review %}<span class="badge badge-review">marked for review</span>{% endif %}
+           <small class="muted">({{ r.q.marks }} mark{{ 's' if r.q.marks != 1 }})</small></p>
+        <p>Your answer: {% if r.selected %}{{ r.selected|upper }}) {{ r.q['option_' + r.selected] }}{% else %}<i>not answered</i>{% endif %}</p>
+        <p>Correct answer: <b>{{ r.q.correct_option|upper }}) {{ r.q['option_' + r.q.correct_option] }}</b></p>
+        {% if r.q.explanation %}<p class="muted">Explanation: {{ r.q.explanation }}</p>{% endif %}
+      </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+{% endblock %}

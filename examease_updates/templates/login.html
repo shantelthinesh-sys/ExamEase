@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Login - ExamEase{% endblock %}
+{% block content %}
+  <div class="card">
+    <h2>Login</h2>
+    <form method="POST" action="{{ url_for('login') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label for="reg_no">Registration Number / Staff ID</label>
+      <input type="text" id="reg_no" name="reg_no" required autocomplete="username">
+
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" required autocomplete="current-password">
+
+      <button type="submit" class="btn">Login</button>
+      <a class="btn btn-secondary" href="{{ url_for('register') }}">New student? Register</a>
+    </form>
+    <p style="margin-top:12px; font-size:13px; color:#666;">
+      Teachers: use the staff ID and password given by your administrator.<br>
+      Admin login - ID: <b>ADMIN</b>, Password: <b>admin123</b> (default - change it before real use)
+    </p>
+  </div>
+{% endblock %}

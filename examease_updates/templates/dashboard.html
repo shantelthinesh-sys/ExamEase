@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - ExamEase{% endblock %}
+{% block content %}
+  <div class="card">
+    <h2>Student Dashboard</h2>
+    <p>Welcome, <b>{{ user.name }}</b> ({{ user.reg_no }}).</p>
+  </div>
+
+  {% if groups.in_progress %}
+  <div class="card">
+    <h3>In Progress</h3>
+    {% for e in groups.in_progress %}
+      <p><b>{{ e.title }}</b> - {{ e.duration_minutes }} min
+         <a class="btn" href="{{ url_for('exam_take', exam_id=e.id) }}">Resume Exam</a></p>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="card">
+    <h3>Available Examinations</h3>
+    {% if groups.available %}
+      <div class="table-wrap"><table>
+        <tr><th>Exam</th><th>Questions</th><th>Marks</th><th>Duration</th><th>Closes</th><th></th></tr>
+        {% for e in groups.available %}
+        <tr>
+          <td>{{ e.title }}<br><small class="muted">{{ e.subject }}</small></td>
+          <td>{{ e.question_count }}</td><td>{{ e.total_marks }}</td>
+          <td>{{ e.duration_minutes }} min</td>
+          <td>{{ e.end_time[:16] if e.end_time else 'No deadline' }}</td>
+          <td><a class="btn" href="{{ url_for('exam_instructions', exam_id=e.id) }}">Start</a></td>
+        </tr>
+        {% endfor %}
+      </table></div>
+    {% else %}
+      <p class="empty">No exams are open right now. Check back later or ask your teacher.</p>
+    {% endif %}
+  </div>
+
+  {% if groups.upcoming %}
+  <div class="card">
+    <h3>Upcoming Examinations</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Exam</th><th>Opens</th><th>Duration</th></tr>
+      {% for e in groups.upcoming %}
+      <tr><td>{{ e.title }}</td><td>{{ e.start_time[:16] }}</td><td>{{ e.duration_minutes }} min</td></tr>
+      {% endfor %}
+    </table></div>
+  </div>
+  {% endif %}
+
+  {% if groups.closed %}
+  <div class="card">
+    <h3>Closed (not attempted)</h3>
+    <ul>{% for e in groups.closed %}<li>{{ e.title }} - closed {{ e.end_time[:16] }}</li>{% endfor %}</ul>
+  </div>
+  {% endif %}
+
+  <div class="card" id="results">
+    <h3>Examination History</h3>
+    {% if history %}
+      <div class="table-wrap"><table>
+        <tr><th>Exam</th><th>Submitted</th><th>Status</th><th>Score</th><th>View</th></tr>
+        {% for a in history %}
+        <tr>
+          <td>{{ a.title }}</td>
+          <td>{{ a.submitted_at }}</td>
+          <td>{{ 'Auto-submitted' if a.status == 'auto_submitted' else 'Submitted' }}</td>
+          <td>{% if a.results_released %}{{ a.marks }} / {{ a.total_marks }} ({{ a.percentage }}%){% else %}<span class="muted">Awaiting release</span>{% endif %}</td>
+          <td><a href="{{ url_for('result', attempt_id=a.id) }}">View</a></td>
+        </tr>
+        {% endfor %}
+      </table></div>
+    {% else %}
+      <p class="empty">No exams taken yet. Start one from the list above to see your results here.</p>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h3>Performance Analytics</h3>
+    {% if analytics %}
+      <div class="stat-grid">
+        <div class="stat"><b>{{ analytics.count }}</b>Exams with results</div>
+        <div class="stat"><b>{{ analytics.average }}%</b>Average</div>
+        <div class="stat"><b>{{ analytics.best }}%</b>Best</div>
+      </div>
+      {% if analytics.topics|length > 1 or (analytics.topics and analytics.topics[0].topic != 'General') %}
+      <h3>Topic-wise accuracy</h3>
+      <div class="table-wrap"><table>
+        <tr><th>Topic</th><th>Correct</th><th>Accuracy</th></tr>
+        {% for t in analytics.topics %}
+        <tr><td>{{ t.topic }}</td><td>{{ t.correct }} / {{ t.total }}</td>
+            <td><div class="bar"><div class="bar-fill" style="width: {{ t.pct }}%"></div></div> {{ t.pct }}%</td></tr>
+        {% endfor %}
+      </table></div>
+      {% endif %}
+    {% else %}
+      <p class="empty">Analytics appear once you have finished an exam whose results have been released.</p>
+    {% endif %}
+  </div>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Users - ExamEase{% endblock %}
+{% block content %}
+  <div class="card">
+    <h2>Create Teacher / Student Account</h2>
+    <form method="POST" action="{{ url_for('admin_users') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label for="name">Full Name</label>
+      <input type="text" id="name" name="name" required>
+      <label for="reg_no">Staff ID / Registration Number</label>
+      <input type="text" id="reg_no" name="reg_no" required>
+      <label for="role">Role</label>
+      <select id="role" name="role"><option value="teacher">Teacher</option><option value="student">Student</option></select>
+      <label for="password">Temporary Password (min 6 characters)</label>
+      <input type="password" id="password" name="password" required minlength="6">
+      <button type="submit" class="btn">Create Account</button>
+    </form>
+  </div>
+  <div class="card">
+    <h3>All Users ({{ users|length }})</h3>
+    <div class="table-wrap"><table>
+      <tr><th>ID</th><th>Name</th><th>Role</th><th>Change role</th></tr>
+      {% for u in users %}
+      <tr>
+        <td>{{ u.reg_no }}</td><td>{{ u.name }}</td>
+        <td><span class="badge badge-{{ u.role }}">{{ u.role }}</span></td>
+        <td>
+          {% if u.role == 'admin' %}<span class="muted">protected</span>
+          {% else %}
+          <form method="POST" action="{{ url_for('admin_set_role', target_id=u.id) }}" style="display:flex; gap:6px;" onsubmit="return confirm('Change role for {{ u.name|e }}?');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <select name="role" style="margin:0; width:auto;">
+              <option value="student" {{ 'selected' if u.role == 'student' }}>student</option>
+              <option value="teacher" {{ 'selected' if u.role == 'teacher' }}>teacher</option>
+            </select>
+            <button class="btn" type="submit" style="padding:5px 10px;">Save</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </table></div>
+  </div>
+{% endblock %}

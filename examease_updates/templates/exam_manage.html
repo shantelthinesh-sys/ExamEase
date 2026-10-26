@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}{{ exam.title }} - ExamEase{% endblock %}
+{% block content %}
+  <div class="card">
+    <h2>{{ exam.title }} <span class="badge badge-{{ exam.status }}">{{ exam.status }}</span></h2>
+    {% if exam.description %}<p>{{ exam.description }}</p>{% endif %}
+    <div class="stat-grid">
+      <div class="stat"><b>{{ eqs|length }}</b>Questions</div>
+      <div class="stat"><b>{{ total_marks }}</b>Total marks</div>
+      <div class="stat"><b>{{ exam.duration_minutes }}</b>Minutes</div>
+      <div class="stat"><b>{{ attempts }}</b>Attempts</div>
+    </div>
+    <p class="muted">
+      Subject: {{ exam.subject or '-' }} &middot;
+      Opens: {{ exam.start_time[:16] if exam.start_time else 'any time' }} &middot;
+      Start before: {{ exam.end_time[:16] if exam.end_time else 'no deadline' }} &middot;
+      Results {{ 'visible' if exam.results_released else 'hidden' }} to students
+    </p>
+    <p class="action-row">
+      {% if exam.status == 'draft' %}
+        <a class="btn btn-secondary" href="{{ url_for('exam_edit', exam_id=exam.id) }}">Edit Details</a>
+      {% endif %}
+      <a class="btn btn-secondary" href="{{ url_for('exam_preview', exam_id=exam.id) }}">Preview</a>
+      <a class="btn btn-secondary" href="{{ url_for('exam_results', exam_id=exam.id) }}">Results</a>
+      {% for action, label, cls in [('exam_duplicate','Duplicate as new draft','btn-secondary')] %}
+      <form method="POST" action="{{ url_for(action, exam_id=exam.id) }}" style="display:inline;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn {{ cls }}" type="submit">{{ label }}</button>
+      </form>
+      {% endfor %}
+      {% if exam.status == 'draft' %}
+        <form method="POST" action="{{ url_for('exam_publish', exam_id=exam.id) }}" style="display:inline;" onsubmit="return confirm('Publish this exam? Students will be able to see and take it.');">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn" type="submit">Publish</button>
+        </form>
+        {% if not attempts %}
+        <form method="POST" action="{{ url_for('exam_delete', exam_id=exam.id) }}" style="display:inline;" onsubmit="return confirm('Delete this draft permanently?');">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn btn-danger" type="submit">Delete Draft</button>
+        </form>
+        {% endif %}
+      {% else %}
+        <form method="POST" action="{{ url_for('exam_unpublish', exam_id=exam.id) }}" style="display:inline;" onsubmit="return confirm('Move this exam back to draft?');">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn btn-danger" type="submit">Unpublish</button>
+        </form>
+      {% endif %}
+    </p>
+    {% if exam.status == 'published' %}
+      <p class="muted">Published exams are locked so students' attempts stay valid. To change one, unpublish it (only before any attempt) or duplicate it as a new draft.</p>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h3>Questions in this exam</h3>
+    {% if eqs %}
+    <form method="POST" action="{{ url_for('exam_set_marks', exam_id=exam.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="table-wrap"><table>
+        <tr><th>#</th><th>Question</th><th>Topic</th><th>Correct</th><th>Marks</th>{% if exam.status == 'draft' %}<th></th>{% endif %}</tr>
+        {% for q in eqs %}
+        <tr>
+          <td>{{ loop.index }}</td><td>{{ q.question|truncate(90) }}</td><td>{{ q.topic or '-' }}</td><td>{{ q.correct_option|upper }}</td>
+          <td>{% if exam.status == 'draft' %}<input type="number" name="marks_{{ q.id }}" value="{{ q.marks }}" min="1" max="100" style="width:70px; margin:0;">{% else %}{{ q.marks }}{% endif %}</td>
+          {% if exam.status == 'draft' %}
+          <td><button class="btn btn-danger" type="submit" style="padding:3px 8px; font-size:13px;"
+                formaction="{{ url_for('exam_remove_question', exam_id=exam.id, eq_id=q.id) }}"
+                onclick="return confirm('Remove this question from the exam?');">Remove</button></td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+        <tr><th colspan="4" style="text-align:right;">Total marks</th><th>{{ total_marks }}</th>{% if exam.status == 'draft' %}<th></th>{% endif %}</tr>
+      </table></div>
+      {% if exam.status == 'draft' %}<button class="btn" type="submit">Save Marks</button>{% endif %}
+    </form>
+    {% else %}
+      <p class="empty">No questions yet. {% if exam.status == 'draft' %}Pick some from the question bank below.{% endif %}</p>
+    {% endif %}
+  </div>
+
+  {% if exam.status == 'draft' %}
+  <div class="card">
+    <h3>Add questions from the Question Bank</h3>
+    <form method="GET" action="{{ url_for('exam_manage', exam_id=exam.id) }}" class="filter-form">
+      <input type="text" name="search" placeholder="Search" value="{{ flt.search }}">
+      <select name="subject"><option value="">All subjects</option>{% for s in subjects %}<option {{ 'selected' if s == flt.subject }}>{{ s }}</option>{% endfor %}</select>
+      <select name="topic"><option value="">All topics</option>{% for t in topics %}<option {{ 'selected' if t == flt.topic }}>{{ t }}</option>{% endfor %}</select>
+      <select name="difficulty"><option value="">Any difficulty</option>{% for d in difficulties %}<option {{ 'selected' if d == flt.difficulty }}>{{ d }}</option>{% endfor %}</select>
+      <button class="btn" type="submit">Filter</button>
+    </form>
+    {% if bank %}
+    <form method="POST" action="{{ url_for('exam_add_questions', exam_id=exam.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="table-wrap"><table>
+        <tr><th><input type="checkbox" onclick="document.querySelectorAll('.pick').forEach(function(c){c.checked=this.checked}.bind(this))"></th>
+            <th>Question</th><th>Topic</th><th>Difficulty</th><th>Marks</th></tr>
+        {% for q in bank %}
+        <tr><td><input type="checkbox" class="pick" name="question_ids" value="{{ q.id }}"></td>
+            <td>{{ q.question|truncate(90) }}</td><td>{{ q.topic or '-' }}</td>
+            <td><span class="badge badge-{{ q.difficulty }}">{{ q.difficulty }}</span></td><td>{{ q.marks }}</td></tr>
+        {% endfor %}
+      </table></div>
+      <button class="btn" type="submit">Add Selected Questions</button>
+    </form>
+    {% else %}
+      <p class="empty">No more questions to add. <a href="{{ url_for('question_add') }}">Create a new question</a> first.</p>
+    {% endif %}
+  </div>
+  {% endif %}
+{% endblock %}

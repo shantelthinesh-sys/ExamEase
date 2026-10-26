@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Exam Instructions - ExamEase{% endblock %}
+{% block content %}
+  <div class="card">
+    <h2>{{ exam.title }} - Instructions</h2>
+    {% if exam.description %}<p>{{ exam.description }}</p>{% endif %}
+    <p>Please read the following instructions carefully before starting the exam.</p>
+    <ul>
+      <li>The exam contains <b>{{ count }}</b> multiple-choice questions worth <b>{{ total_marks }}</b> marks in total.</li>
+      <li>Each question has four options (a, b, c, d). Only one option is correct.</li>
+      <li>You will have <b>{{ exam.duration_minutes }} minutes</b>. The timer starts when you click Start and is checked by the server.</li>
+      <li>You can move between questions using Next, Previous, or the numbered buttons.</li>
+      <li>Use <b>Mark for Review</b> to flag a question and <b>Clear Answer</b> to remove your choice.</li>
+      <li>Your answers are saved automatically as you go.</li>
+      <li>A review screen appears before you submit. The exam auto-submits when time runs out.</li>
+      <li>You can attempt this exam <b>only once</b>.</li>
+      <li>Your score is calculated on the server after you submit.</li>
+    </ul>
+    {% if exam.instructions %}
+      <h3>Instructions from your teacher</h3>
+      <p style="white-space:pre-wrap;">{{ exam.instructions }}</p>
+    {% endif %}
+    <form method="POST" action="{{ url_for('exam_begin', exam_id=exam.id) }}"
+          onsubmit="return confirm('Start now? The timer begins immediately and you can attempt this exam only once.');">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="btn">I have read the instructions - Start Exam</button>
+      <a class="btn btn-secondary" href="{{ url_for('dashboard') }}">Back to Dashboard</a>
+    </form>
+  </div>
+{% endblock %}

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}ExamEase{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="navbar">
+    <h1><a href="{{ url_for('index') }}" style="text-decoration:none; color:#1565c0;">ExamEase</a></h1>
+    <div class="nav-right">
+      {% if user %}
+        <span>{{ user.name }} <span class="badge badge-{{ user.role }}">{{ user.role }}</span></span>
+        {% if user.role == 'student' %}
+          <a href="{{ url_for('dashboard') }}">Dashboard</a>
+        {% elif user.role == 'teacher' %}
+          <a href="{{ url_for('teacher_dashboard') }}">Dashboard</a>
+          <a href="{{ url_for('question_list') }}">Question Bank</a>
+          <a href="{{ url_for('exam_new') }}">New Exam</a>
+          <a href="{{ url_for('search') }}">Search</a>
+        {% else %}
+          <a href="{{ url_for('admin_dashboard') }}">Dashboard</a>
+          <a href="{{ url_for('admin_users') }}">Users</a>
+          <a href="{{ url_for('question_list') }}">Questions</a>
+          <a href="{{ url_for('search') }}">Search</a>
+        {% endif %}
+        <a href="{{ url_for('logout') }}">Logout</a>
+      {% else %}
+        <a href="{{ url_for('login') }}">Login</a>
+        <a href="{{ url_for('register') }}">Register</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </div>
+</body>
+</html>

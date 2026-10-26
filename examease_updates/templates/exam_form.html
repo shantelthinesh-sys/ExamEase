@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}{{ "Edit" if mode == "edit" else "New" }} Exam - ExamEase{% endblock %}
+{% block content %}
+  <div class="card">
+    <h2>{{ "Edit Exam Details" if mode == "edit" else "Create Exam" }}</h2>
+    <form method="POST" action="{{ url_for('exam_edit', exam_id=exam.id) if mode == 'edit' else url_for('exam_new') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label for="title">Title</label>
+      <input type="text" id="title" name="title" required maxlength="150" value="{{ e.title or '' }}">
+      <label for="subject">Subject</label>
+      <input type="text" id="subject" name="subject" maxlength="100" value="{{ e.subject or '' }}">
+      <label for="description">Description</label>
+      <textarea id="description" name="description" maxlength="1000">{{ e.description or '' }}</textarea>
+      <label for="instructions">Instructions for students</label>
+      <textarea id="instructions" name="instructions" maxlength="3000">{{ e.instructions or '' }}</textarea>
+      <div class="grid-2">
+        <div><label for="duration_minutes">Duration (minutes)</label>
+          <input type="number" id="duration_minutes" name="duration_minutes" min="1" max="300" required value="{{ e.duration_minutes }}"></div>
+        <div></div>
+        <div><label for="start_time">Opens at (optional)</label>
+          <input type="datetime-local" id="start_time" name="start_time" value="{{ (e.start_time or '')[:16]|replace(' ', 'T') }}"></div>
+        <div><label for="end_time">Must be started before (optional)</label>
+          <input type="datetime-local" id="end_time" name="end_time" value="{{ (e.end_time or '')[:16]|replace(' ', 'T') }}"></div>
+      </div>
+      <label style="font-weight:normal;"><input type="checkbox" name="results_released" value="1" {{ 'checked' if e.results_released }}>
+        Show results to students immediately after they submit (you can change this later)</label>
+      <p style="margin-top:12px;">
+        <button type="submit" class="btn">{{ "Save Details" if mode == "edit" else "Save Draft &amp; Add Questions"|safe }}</button>
+        <a class="btn btn-secondary" href="{{ url_for('exam_manage', exam_id=exam.id) if mode == 'edit' else url_for('teacher_dashboard' if user.role == 'teacher' else 'admin_dashboard') }}">Cancel</a>
+      </p>
+    </form>
+  </div>
+{% endblock %}

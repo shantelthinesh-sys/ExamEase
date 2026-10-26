@@ -1,0 +1,22 @@
+<div class="table-wrap">
+<table>
+  <tr>
+    <th>Title</th>{% if show_owner %}<th>Teacher</th>{% endif %}<th>Status</th><th>Questions</th>
+    <th>Marks</th><th>Attempts</th><th>Actions</th>
+  </tr>
+  {% for e in exams %}
+  <tr>
+    <td>{{ e.title }}<br><small class="muted">{{ e.subject }}</small></td>
+    {% if show_owner %}<td>{{ e.owner_name }}</td>{% endif %}
+    <td><span class="badge badge-{{ e.status }}">{{ e.status }}</span></td>
+    <td>{{ e.question_count }}</td>
+    <td>{{ e.total_marks }}</td>
+    <td>{{ e.attempt_count }}</td>
+    <td>
+      <a href="{{ url_for('exam_manage', exam_id=e.id) }}">Manage</a> |
+      <a href="{{ url_for('exam_results', exam_id=e.id) }}">Results</a>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+</div>

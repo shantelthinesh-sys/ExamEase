@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Search Result - ExamEase{% endblock %}
+{% block content %}
+  <div class="card">
+    <h2>Search Result by Registration Number</h2>
+    <p>This search uses <b>Binary Search</b> on the list of results sorted by registration number.
+       {% if user.role == 'teacher' %}Only results from your own exams are searched.{% endif %}</p>
+    <form method="POST" action="{{ url_for('search') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label for="reg_no">Registration Number</label>
+      <input type="text" id="reg_no" name="reg_no" required value="{{ query_reg }}">
+      <button type="submit" class="btn">Search</button>
+      <a class="btn btn-secondary" href="{{ url_for('teacher_dashboard' if user.role == 'teacher' else 'admin_dashboard') }}">Back</a>
+    </form>
+
+    {% if searched %}
+      <hr class="sep">
+      {% if matches %}
+        <h3>{{ matches|length }} result(s) found for {{ query_reg }}</h3>
+        <div class="table-wrap"><table>
+          <tr><th>Name</th><th>Exam</th><th>Marks</th><th>Percentage</th><th>Submitted</th><th>View</th></tr>
+          {% for m in matches %}
+          <tr><td>{{ m.name }}</td><td>{{ m.title }}</td><td>{{ m.marks }} / {{ m.total_marks }}</td>
+              <td>{{ m.percentage }}%</td><td>{{ m.submitted_at }}</td>
+              <td><a href="{{ url_for('result', attempt_id=m.id) }}">View</a></td></tr>
+          {% endfor %}
+        </table></div>
+      {% else %}
+        <p class="empty">No result found for registration number "{{ query_reg }}".</p>
+      {% endif %}
+    {% endif %}
+  </div>
+{% endblock %}

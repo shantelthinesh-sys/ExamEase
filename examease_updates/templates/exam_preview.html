@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Preview - ExamEase{% endblock %}
+{% block content %}
+  <div class="card">
+    <h2>Preview: {{ exam.title }}</h2>
+    <p class="muted">This is how questions appear to students. Correct answers are never shown here.</p>
+    <p>{{ questions|length }} questions &middot; {{ questions|sum(attribute='marks') }} marks &middot; {{ exam.duration_minutes }} minutes</p>
+    {% if exam.instructions %}<p style="white-space:pre-wrap;"><b>Instructions:</b> {{ exam.instructions }}</p>{% endif %}
+    <a class="btn btn-secondary" href="{{ url_for('exam_manage', exam_id=exam.id) }}">Back</a>
+  </div>
+  {% for q in questions %}
+  <div class="card">
+    <h3>Question {{ loop.index }} <small class="muted">({{ q.marks }} mark{{ 's' if q.marks != 1 }})</small></h3>
+    <p style="white-space:pre-wrap;">{{ q.question }}</p>
+    <div class="options">
+      {% for l in ['a','b','c','d'] %}<label><input type="radio" disabled> {{ l }}) {{ q['option_' + l] }}</label>{% endfor %}
+    </div>
+  </div>
+  {% else %}<div class="card"><p class="empty">No questions yet.</p></div>{% endfor %}
+{% endblock %}

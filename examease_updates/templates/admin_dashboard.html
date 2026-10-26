@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard - ExamEase{% endblock %}
+{% block content %}
+  <div class="card">
+    <h2>Admin Dashboard</h2>
+    <p>Platform overview. Manage users, questions and exams.</p>
+    <div class="stat-grid">
+      <div class="stat"><b>{{ stats.students }}</b>Students</div>
+      <div class="stat"><b>{{ stats.teachers }}</b>Teachers</div>
+      <div class="stat"><b>{{ stats.exams_published }}</b>Published exams</div>
+      <div class="stat"><b>{{ stats.exams_draft }}</b>Draft exams</div>
+      <div class="stat"><b>{{ stats.questions }}</b>Questions</div>
+      <div class="stat"><b>{{ stats.attempts }}</b>Submitted attempts</div>
+      <div class="stat"><b>{{ stats.avg_pct if stats.avg_pct is not none else '-' }}{{ '%' if stats.avg_pct is not none }}</b>Average score</div>
+    </div>
+    <p>
+      <a class="btn" href="{{ url_for('admin_users') }}">Manage Users</a>
+      <a class="btn btn-secondary" href="{{ url_for('question_list') }}">Question Bank</a>
+      <a class="btn btn-secondary" href="{{ url_for('exam_new') }}">Create Exam</a>
+      <a class="btn btn-secondary" href="{{ url_for('search') }}">Search Result by Reg. No.</a>
+    </p>
+  </div>
+  <div class="card">
+    <h3>All Exams ({{ exams|length }})</h3>
+    {% if exams %}{% set show_owner = true %}{% include "_exam_table.html" %}
+    {% else %}<p class="empty">No exams yet.</p>{% endif %}
+  </div>
+{% endblock %}

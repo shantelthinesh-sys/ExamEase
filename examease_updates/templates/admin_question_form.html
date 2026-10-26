@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}{{ "Edit" if mode == "edit" else "Add" }} Question - ExamEase{% endblock %}
+{% block content %}
+  <div class="card">
+    <h2>{{ "Edit" if mode == "edit" else "Add" }} Question</h2>
+    <form method="POST" action="{{ url_for('question_edit', question_id=q.id) if mode == 'edit' else url_for('question_add') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label for="question">Question</label>
+      <textarea id="question" name="question" required maxlength="2000">{{ q.question or '' }}</textarea>
+
+      {% for l in ['a','b','c','d'] %}
+      <label for="option_{{ l }}">Option {{ l|upper }}</label>
+      <input type="text" id="option_{{ l }}" name="option_{{ l }}" required maxlength="500" value="{{ q['option_' + l] or '' }}">
+      {% endfor %}
+
+      <label for="correct_option">Correct Option</label>
+      <select id="correct_option" name="correct_option" required>
+        {% for l in ['a','b','c','d'] %}<option value="{{ l }}" {{ 'selected' if q.correct_option == l }}>{{ l|upper }}</option>{% endfor %}
+      </select>
+
+      <div class="grid-2">
+        <div><label for="subject">Subject</label><input type="text" id="subject" name="subject" maxlength="100" value="{{ q.subject or '' }}"></div>
+        <div><label for="topic">Topic</label><input type="text" id="topic" name="topic" maxlength="100" value="{{ q.topic or '' }}"></div>
+        <div><label for="difficulty">Difficulty</label>
+          <select id="difficulty" name="difficulty">{% for d in difficulties %}<option {{ 'selected' if q.difficulty == d }}>{{ d }}</option>{% endfor %}</select></div>
+        <div><label for="marks">Marks (1-100)</label><input type="number" id="marks" name="marks" min="1" max="100" required value="{{ q.marks or 1 }}"></div>
+      </div>
+
+      <label for="explanation">Explanation (shown to students when results are released)</label>
+      <textarea id="explanation" name="explanation" maxlength="2000">{{ q.explanation or '' }}</textarea>
+
+      <button type="submit" class="btn">{{ "Update" if mode == "edit" else "Add" }} Question</button>
+      <a class="btn btn-secondary" href="{{ url_for('question_list') }}">Cancel</a>
+    </form>
+  </div>
+
+  <div class="card">
+    <h3>Student preview</h3>
+    <p id="pv-text" style="white-space:pre-wrap;"></p>
+    <div class="options" id="pv-options"></div>
+    <p class="muted" id="pv-marks"></p>
+  </div>
+  <script>
+    function updatePreview() {
+      var $ = function (id) { return document.getElementById(id).value; };
+      document.getElementById("pv-text").textContent = $("question") || "(question text appears here)";
+      var box = document.getElementById("pv-options");
+      box.innerHTML = "";
+      ["a", "b", "c", "d"].forEach(function (l) {
+        var label = document.createElement("label");
+        var r = document.createElement("input"); r.type = "radio"; r.disabled = true;
+        label.appendChild(r);
+        label.appendChild(document.createTextNode(" " + l + ") " + ($("option_" + l) || "...")));
+        box.appendChild(label);
+      });
+      document.getElementById("pv-marks").textContent = ($("marks") || "?") + " mark(s) - " + $("difficulty");
+    }
+    document.querySelectorAll("form input, form textarea, form select").forEach(function (el) {
+      el.addEventListener("input", updatePreview);
+    });
+    updatePreview();
+  </script>
+{% endblock %}
